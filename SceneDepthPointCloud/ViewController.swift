@@ -1,9 +1,9 @@
 /*
-See LICENSE folder for this sample’s licensing information.
-
-Abstract:
-Main view controller for the AR experience.
-*/
+ See LICENSE folder for this sample’s licensing information.
+ 
+ Abstract:
+ Main view controller for the AR experience.
+ */
 
 import UIKit
 import Metal
@@ -14,6 +14,7 @@ final class ViewController: UIViewController, ARSessionDelegate {
     private let isUIEnabled = true
     private let confidenceControl = UISegmentedControl(items: ["Low", "Medium", "High"])
     private let rgbRadiusSlider = UISlider()
+    private let saveButton = UIButton()
     
     private let session = ARSession()
     private var renderer: Renderer!
@@ -55,7 +56,11 @@ final class ViewController: UIViewController, ARSessionDelegate {
         rgbRadiusSlider.value = renderer.rgbRadius
         rgbRadiusSlider.addTarget(self, action: #selector(viewValueChanged), for: .valueChanged)
         
-        let stackView = UIStackView(arrangedSubviews: [confidenceControl, rgbRadiusSlider])
+        // Button to save particles
+        saveButton.setTitle("Save particles", for: .normal)
+        saveButton.addTarget(self, action: #selector(saveButtonPressed), for: .touchUpInside)
+        
+        let stackView = UIStackView(arrangedSubviews: [confidenceControl, rgbRadiusSlider, saveButton])
         stackView.isHidden = !isUIEnabled
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .vertical
@@ -74,7 +79,7 @@ final class ViewController: UIViewController, ARSessionDelegate {
         // enable the scene depth frame-semantic.
         let configuration = ARWorldTrackingConfiguration()
         configuration.frameSemantics = .sceneDepth
-
+        
         // Run the view's session
         session.run(configuration)
         
@@ -85,7 +90,7 @@ final class ViewController: UIViewController, ARSessionDelegate {
     @objc
     private func viewValueChanged(view: UIView) {
         switch view {
-            
+        
         case confidenceControl:
             renderer.confidenceThreshold = confidenceControl.selectedSegmentIndex
             
@@ -94,6 +99,24 @@ final class ViewController: UIViewController, ARSessionDelegate {
             
         default:
             break
+        }
+    }
+    
+    @objc
+    private func saveButtonPressed(sender: UIButton!) {
+        // TODO
+        // Get the particles from renderer
+        // transform particles to obj file
+        let converter = ParticlesToPlyConverter()
+        let res = converter.convert(from: renderer.particlesBuffer, count: renderer.currentPointCount)
+        
+        var tmpURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("scan_ply.ply")
+        do {
+            try res.write(to: tmpURL, atomically: true, encoding: .utf8)
+            print("SAVED")
+        } catch {
+            print(error)
         }
     }
     
@@ -158,4 +181,13 @@ protocol RenderDestinationProvider {
 
 extension MTKView: RenderDestinationProvider {
     
+}
+
+extension URL {
+    var typeIdentifier: String? {
+        return (try? resourceValues(forKeys: [.typeIdentifierKey]))?.typeIdentifier
+    }
+    var localizedName: String? {
+        return (try? resourceValues(forKeys: [.localizedNameKey]))?.localizedName
+    }
 }

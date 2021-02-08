@@ -75,9 +75,9 @@ final class Renderer {
     }()
     private var pointCloudUniformsBuffers = [MetalBuffer<PointCloudUniforms>]()
     // Particles buffer
-    private var particlesBuffer: MetalBuffer<ParticleUniforms>
-    private var currentPointIndex = 0
-    private var currentPointCount = 0
+    public var particlesBuffer: MetalBuffer<ParticleUniforms>
+    public var currentPointIndex = 0
+    public var currentPointCount = 0
     
     // Camera data
     private var sampleFrame: ARFrame { session.currentFrame! }
@@ -221,6 +221,12 @@ final class Renderer {
             
         commandBuffer.present(renderDestination.currentDrawable!)
         commandBuffer.commit()
+    }
+    
+    // Mykola: Function to view content of the particles metal buffer
+    private func viewParticlesBuffer() {
+        var particle = particlesBuffer[0]
+        print(particle)
     }
     
     private func shouldAccumulate(frame: ARFrame) -> Bool {
